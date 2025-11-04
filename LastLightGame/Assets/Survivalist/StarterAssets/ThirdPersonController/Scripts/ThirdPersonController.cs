@@ -151,19 +151,15 @@ namespace StarterAssets
 
 		private void CameraRotation()
 		{
-			// if there is an input and camera position is not fixed
-			if (_input.look.sqrMagnitude >= _threshold && !LockCameraPosition)
-			{
-				_cinemachineTargetYaw += _input.look.x * Time.deltaTime;
-				_cinemachineTargetPitch += _input.look.y * Time.deltaTime;
-			}
+			// Always set camera yaw to match player's current facing direction
+			_cinemachineTargetYaw = transform.eulerAngles.y;
 
-			// clamp our rotations so our values are limited 360 degrees
-			_cinemachineTargetYaw = ClampAngle(_cinemachineTargetYaw, float.MinValue, float.MaxValue);
-			_cinemachineTargetPitch = ClampAngle(_cinemachineTargetPitch, BottomClamp, TopClamp);
+			// You can still clamp looking up/down if you want (pitch stays same)
+			_cinemachineTargetPitch = Mathf.Clamp(_cinemachineTargetPitch, BottomClamp, TopClamp);
 
-			// Cinemachine will follow this target
-			CinemachineCameraTarget.transform.rotation = Quaternion.Euler(_cinemachineTargetPitch + CameraAngleOverride, _cinemachineTargetYaw, 0.0f);
+			// Apply this rotation to the Cinemachine camera follow target
+			CinemachineCameraTarget.transform.rotation =
+				Quaternion.Euler(_cinemachineTargetPitch, _cinemachineTargetYaw, 0.0f);
 		}
 
 		private void Move()
@@ -199,25 +195,28 @@ namespace StarterAssets
 			}
 			_animationBlend = Mathf.Lerp(_animationBlend, targetSpeed, Time.deltaTime * SpeedChangeRate);
 
-			// normalise input direction
-			Vector3 inputDirection = new Vector3(_input.move.x, 0.0f, _input.move.y).normalized;
+			// ✅ Get camera forward/right but ignore vertical tilt (pitch)
+Vector3 cameraForward = _mainCamera.transform.forward;
+cameraForward.y = 0f;
+cameraForward.Normalize();
 
-			// note: Vector2's != operator uses approximation so is not floating point error prone, and is cheaper than magnitude
-			// if there is a move input rotate player when the player is moving
+Vector3 cameraRight = _mainCamera.transform.right;
+cameraRight.y = 0f;
+cameraRight.Normalize();
+
+// ✅ Movement direction based on camera yaw only
+Vector3 moveDirection = (cameraForward * _input.move.y + cameraRight * _input.move.x).normalized;
+
+// ✅ Rotate character only when moving
 			if (_input.move != Vector2.zero)
 			{
-				_targetRotation = Mathf.Atan2(inputDirection.x, inputDirection.z) * Mathf.Rad2Deg + _mainCamera.transform.eulerAngles.y;
-				float rotation = Mathf.SmoothDampAngle(transform.eulerAngles.y, _targetRotation, ref _rotationVelocity, RotationSmoothTime);
-
-				// rotate to face input direction relative to camera position
-				transform.rotation = Quaternion.Euler(0.0f, rotation, 0.0f);
+   			 _targetRotation = Mathf.Atan2(moveDirection.x, moveDirection.z) * Mathf.Rad2Deg;
+   			 float rotation = Mathf.SmoothDampAngle(transform.eulerAngles.y, _targetRotation, ref _rotationVelocity, RotationSmoothTime);
+    		transform.rotation = Quaternion.Euler(0.0f, rotation, 0.0f);
 			}
 
-
-			Vector3 targetDirection = Quaternion.Euler(0.0f, _targetRotation, 0.0f) * Vector3.forward;
-
-			// move the player
-			_controller.Move(targetDirection.normalized * (_speed * Time.deltaTime) + new Vector3(0.0f, _verticalVelocity, 0.0f) * Time.deltaTime);
+// ✅ Move player flat on ground (no camera tilt influence)
+	_controller.Move(moveDirection * (_speed * Time.deltaTime) + new Vector3(0.0f, _verticalVelocity, 0.0f) * Time.deltaTime);
 
 			// update animator if using character
 			if (_hasAnimator)

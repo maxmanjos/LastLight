@@ -2,18 +2,26 @@ using UnityEngine;
 
 public class CameraFollow : MonoBehaviour
 {
-    public Transform target;        // the player
-    public Vector3 offset = new Vector3(0, 8, -8);
-    public float smoothSpeed = 5f;
+    public Transform player;         // Player transform
+    public Vector3 offset = new Vector3(0, 2, -4);  // Position behind player
+    public float followSpeed = 10f;  // Smooth following
 
     void LateUpdate()
     {
-        if (target == null) return;
+        if (player == null) return;
 
-        Vector3 desiredPosition = target.position + offset;
-        Vector3 smoothedPosition = Vector3.Lerp(transform.position, desiredPosition, smoothSpeed * Time.deltaTime);
-        transform.position = smoothedPosition;
+        // Rotate the offset to match the player's facing direction
+        Vector3 rotatedOffset = player.rotation * offset;
 
-        transform.LookAt(target);
+        // Set camera position behind the player
+        Vector3 targetPosition = player.position + rotatedOffset;
+        transform.position = Vector3.Lerp(transform.position, targetPosition, followSpeed * Time.deltaTime);
+
+        // Make the camera look where the player is looking
+        transform.rotation = Quaternion.Lerp(
+            transform.rotation, 
+            Quaternion.Euler(0, player.eulerAngles.y, 0), 
+            followSpeed * Time.deltaTime
+        );
     }
 }
