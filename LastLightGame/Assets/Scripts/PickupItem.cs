@@ -16,6 +16,10 @@ public class ItemPickup : MonoBehaviour
     private MessageWindow msgWindow;
     private PlayerNeeds playerNeeds;
 
+    public bool isObjectiveItem = false;      // Is this part of the radio tower quest?
+    public ObjectiveItemType objectiveType;   // Which objective item is it?
+
+
     void Start()
     {
         GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
@@ -66,23 +70,32 @@ public class ItemPickup : MonoBehaviour
         }
     }
 
-    void PickUpItem()
+    void PickUpItem() 
     {
-        Debug.Log("ItemPickup: PickUpItem called for " + itemName);
+    Debug.Log("ItemPickup: PickUpItem called for " + itemName);
 
-        // Apply survival effects
-        if (playerNeeds != null)
-        {
-            if (restoresHunger)
-                playerNeeds.Eat(hungerAmount);
+    // Apply survival effects
+    if (playerNeeds != null)
+    {
+        if (restoresHunger)
+            playerNeeds.Eat(hungerAmount);
 
-            if (restoresThirst)
-                playerNeeds.Drink(thirstAmount);
-        }
+        if (restoresThirst)
+            playerNeeds.Drink(thirstAmount);
+    }
 
-        // Show pickup message in window
+    // Show pickup message in window
+    if (msgWindow != null)
         msgWindow.ShowPickup(itemName);
 
-        Destroy(gameObject);
+    // ✅ NEW: update the checklist if this is a radio tower objective item
+    if (isObjectiveItem && ObjectivesUIManager.Instance != null)
+    {
+        ObjectivesUIManager.Instance.MarkCollected(objectiveType);
     }
+
+    // Destroy item from world
+    Destroy(gameObject);
+    }
+
 }

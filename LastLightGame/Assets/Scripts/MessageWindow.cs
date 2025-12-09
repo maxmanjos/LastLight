@@ -6,63 +6,74 @@ public class MessageWindow : MonoBehaviour
 {
     public static MessageWindow Instance;
 
-    public GameObject window;              // The panel object
-    public TextMeshProUGUI messageText;    // Text inside the panel
-    public float pickupMessageTime = 2f;   // How long to show "Picked up ..." message
+    [Header("UI References")]
+    public GameObject window;               // The panel object
+    public TextMeshProUGUI messageText;     // The TMP text inside the panel
+    public float fadeTime = 2f;             // How long the message stays up
 
-    private bool showingPickup = false;    // To avoid the prompt fighting with the pickup message
+    private Coroutine currentRoutine;
 
     void Awake()
     {
+        // Singleton-style access
         Instance = this;
 
-        if (window == null)
-            Debug.LogError("MessageWindow: 'window' is not assigned in the Inspector!");
-        if (messageText == null)
-            Debug.LogError("MessageWindow: 'messageText' is not assigned in the Inspector!");
-
         if (window != null)
-            window.SetActive(false);   // Start hidden
+            window.SetActive(false);
     }
 
-    // Called while you're close: show "Press E to pick up X"
-    public void ShowPrompt(string itemName)
-    {
-        if (window == null || messageText == null) return;
-        if (showingPickup) return;  // Don't override the "Picked up" message
-
-        window.SetActive(true);
-        messageText.text = $"Press E to pick up {itemName}";
-    }
-
-    // Called when you walk away from the item
-    public void HidePrompt()
-    {
-        if (window == null) return;
-        if (showingPickup) return;  // Don't hide if we're in the middle of a pickup message
-
-        window.SetActive(false);
-    }
-
-    // Called when you actually pick up the item: show "Picked up X!"
+    // --------------------------
+    // PICKUP MESSAGE ("Picked up Water!")
+    // --------------------------
     public void ShowPickup(string itemName)
     {
-        if (window == null || messageText == null) return;
-
-        StopAllCoroutines();
-        StartCoroutine(ShowPickupRoutine(itemName));
+        ShowMessage("Picked up " + itemName + "!");
     }
 
-    private IEnumerator ShowPickupRoutine(string itemName)
+    // --------------------------
+    // GENERIC MESSAGE ("You starved to death!")
+    // --------------------------
+    public void ShowMessage(string message)
     {
-        showingPickup = true;
+        if (currentRoutine != null)
+            StopCoroutine(currentRoutine);
 
-        window.SetActive(true);
-        messageText.text = $"Picked up {itemName}!";
+        currentRoutine = StartCoroutine(ShowRoutine(message));
+    }
 
-        yield return new WaitForSeconds(pickupMessageTime);
+    private IEnumerator ShowRoutine(string msg)
+    {
+        if (messageText != null)
+            messageText.text = msg;
 
-        showingPickup = false;
-        window.SetActive(false);
+        if (window != null)
+            window.SetActive(true);
+
+        yield return new WaitForSeconds(fadeTime);
+
+        if (window != null)
+            window.SetActive(false);
+
+        currentRoutine = null;
+    }
+
+    // --------------------------
+    // PROMPT ("Press E to pick up Water")
+    // --------------------------
+    public void ShowPrompt(string itemName)
+    {
+        ShowMessage("Press E to pick up " + itemName);
+    }
+
+    public void HidePrompt()
+    {
+        if (currentRoutine != null)
+        {
+            StopCoroutine(currentRoutine);
+            currentRoutine = null;
+        }
+
+        if (window != null)
+            window.SetActive(false);
     }
 }

@@ -25,6 +25,9 @@ public class PlayerNeeds : MonoBehaviour
     [Header("Low Warning Threshold")]
     public float lowThreshold = 20f;
 
+    // Track if player is already dead so we don't spam death logic
+    private bool isDead = false;
+
     void Start()
     {
         // Start full
@@ -48,6 +51,9 @@ public class PlayerNeeds : MonoBehaviour
 
     void Update()
     {
+        // If already dead, don't keep updating
+        if (isDead) return;
+
         // Decay needs over time
         hunger -= hungerDecayPerSecond * Time.deltaTime;
         thirst -= thirstDecayPerSecond * Time.deltaTime;
@@ -57,8 +63,15 @@ public class PlayerNeeds : MonoBehaviour
 
         UpdateUI();
 
-        // TODO: later – apply damage or death when hunger/thirst == 0
-        // For now, just let it hit 0 and stay there.
+        // Death conditions
+        if (hunger <= 0f)
+        {
+            Die("You starved to death!");
+        }
+        else if (thirst <= 0f)
+        {
+            Die("You died of thirst!");
+        }
     }
 
     void UpdateUI()
@@ -84,12 +97,16 @@ public class PlayerNeeds : MonoBehaviour
 
     public void Eat(float amount)
     {
+        if (isDead) return;
+
         hunger = Mathf.Clamp(hunger + amount, 0f, maxHunger);
         UpdateUI();
     }
 
     public void Drink(float amount)
     {
+        if (isDead) return;
+
         thirst = Mathf.Clamp(thirst + amount, 0f, maxThirst);
         UpdateUI();
     }
@@ -102,5 +119,22 @@ public class PlayerNeeds : MonoBehaviour
     public bool IsDehydrated()
     {
         return thirst <= 0f;
+    }
+
+    void Die(string cause)
+    {
+        if (isDead) return;
+        isDead = true;
+
+        // Show death message using the generic message method
+        if (MessageWindow.Instance != null)
+        {
+            MessageWindow.Instance.ShowMessage(cause);
+        }
+
+        // Freeze the game
+        Time.timeScale = 0f;
+
+        Debug.Log(cause);
     }
 }
