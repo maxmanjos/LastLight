@@ -2578,7 +2578,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 435596, guid: 6a53f0c8427bc2d49b828aa97154ab08, type: 3}
       propertyPath: m_LocalScale.z
-      value: 0.3
+      value: 0.6
       objectReference: {fileID: 0}
     - target: {fileID: 435596, guid: 6a53f0c8427bc2d49b828aa97154ab08, type: 3}
       propertyPath: m_LocalPosition.x
@@ -4412,8 +4412,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0e0c2efced1fec04f8aa229e4db5cf56, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  player: {fileID: 294123572}
-  offset: {x: 0, y: 1.8, z: -4}
+  player: {fileID: 399515929}
+  offset: {x: 0, y: 0.4, z: -3}
   followSpeed: 6
 --- !u!1001 &332428381
 PrefabInstance:
@@ -7602,8 +7602,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 26e54e5a728a9234ab24fcf1460ed8a2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  MoveSpeed: 30
-  SprintSpeed: 50
+  MoveSpeed: 35
+  SprintSpeed: 55
   RotationSmoothTime: 0.09
   SpeedChangeRate: 10
   JumpHeight: 1.2
@@ -10738,6 +10738,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 6412016431847060139, guid: a06d749d61bbdf14a98518de14ae7702, type: 3}
+      propertyPath: isObjectiveItem
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 7449037689888470859, guid: a06d749d61bbdf14a98518de14ae7702, type: 3}
       propertyPath: m_Name
       value: waterbottle Variant
